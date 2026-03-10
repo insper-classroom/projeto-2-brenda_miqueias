@@ -2,13 +2,15 @@ import os
 from dotenv import load_dotenv
 import mysql.connector
 
-#config da conexao (usar os mesmos dados do workbench)
+load_dotenv()
+
 db_config = {
-    'host': os.getenv('DB_HOST'),
-    'user': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASSWORD'),
-    'database': os.getenv('DB_NAME')
-}
+        'host': os.getenv('DB_HOST'),
+        'user': os.getenv('DB_USER'),
+        'password': os.getenv('DB_PASSWORD'),
+        'database': os.getenv('DB_NAME'),
+        'port': int(os.getenv('DB_PORT', '3306')),
+    }
 
 def run_sql(command, params=None, fetch=False):
     '''Executa comandos SQL em um banco de dados MySQL.
@@ -26,6 +28,7 @@ def run_sql(command, params=None, fetch=False):
         retorno, ou ``None`` em caso de erro.
     '''
     connection = None
+    cursor = None
     try:
         connection = mysql.connector.connect(**db_config)
         
@@ -41,10 +44,11 @@ def run_sql(command, params=None, fetch=False):
         return True
 
     except mysql.connector.Error as e:
-        print(f"ErroL: {e}")
+        print(f"Erro ao conectar/executar no MySQL: {e}")
         return None
 
     finally:
-        if connection and connection.is_connected():
+        if cursor:
             cursor.close()
+        if connection and connection.is_connected():
             connection.close()
