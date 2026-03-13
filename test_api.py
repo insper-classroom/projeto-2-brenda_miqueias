@@ -18,3 +18,25 @@ def test_get_all_imoveis():
 	mocked_run_sql.assert_called_once_with('SELECT * FROM imoveis', fetch=True)
 	assert response.status_code == 200
 	assert response.get_json() == expected_data
+
+
+def test_get_imovel_id():
+	'''Testa a rota GET /imoveis/<id>.
+
+        Valida que:
+
+        A consulta SQL usa filtro por id com placeholder correto.
+        O parâmetro id é enviado em params como tupla.
+        A resposta retorna status 200.
+        O JSON retornado corresponde aos dados mockados.
+    '''
+	expected_data = [{"id": 1, "bairro": "Centro"}]
+
+	with patch('servidor.run_sql', return_value=expected_data) as mocked_run_sql:
+		client = app.test_client()
+		response = client.get('/imoveis/1')
+
+	mocked_run_sql.assert_called_once_with('SELECT * FROM imoveis WHERE id=%s', params=(1,), fetch=True)
+	assert response.status_code == 200
+	assert response.get_json() == expected_data
+	
