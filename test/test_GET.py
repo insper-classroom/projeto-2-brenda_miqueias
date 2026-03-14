@@ -39,4 +39,3 @@ def test_get_imovel_id():
 	mocked_run_sql.assert_called_once_with('SELECT * FROM imoveis WHERE id=%s', params=(1,), fetch=True)
 	assert response.status_code == 200
 	assert response.get_json() == expected_data
-	
