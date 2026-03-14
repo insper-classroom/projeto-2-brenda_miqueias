@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify, request
 from utils import run_sql
 
 app = Flask(__name__)
@@ -12,6 +12,53 @@ def get_all_imoveis():
 def get_imovel_id(id):
     command = 'SELECT * FROM imoveis WHERE id=%s'
     return run_sql(command, params=(id,), fetch=True)
+
+@app.route('/submit', methods=['POST'])
+def submit_imovel():
+    data = request.get_json(silent=True) #captura do corpo da requisicao
+
+    # retorna 400 se o usuario nao inserir nada no corpo da requisicao
+    if not data:
+        return jsonify({'erro': 'Envie um JSON valido no corpo da requisicao.'}), 400
+
+    campos_obrigatorios = ['logradouro', 'cidade'] # NOT NULL em imoveis.sql (o banco rejeita registros sem esses valores)
+    campos_faltantes = [campo for campo in campos_obrigatorios if not data.get(campo)] #lista campos obrigatrios faltantes
+
+    # se a lista campos_faltantes não estiver vazia, ele retorna 400.
+    if campos_faltantes:
+        return jsonify({'erro': f"Campos obrigatorios ausentes: {', '.join(campos_faltantes)}"}), 400
+
+    command = '''
+        INSERT INTO imoveis (
+            logradouro,
+            tipo_logradouro,
+            bairro,
+            cidade,
+            cep,
+            tipo,
+            valor,
+            data_aquisicao
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    '''
+    params = (
+        data['logradouro'],
+        data.get('tipo_logradouro'),
+        data.get('bairro'),
+        data['cidade'],
+        data.get('cep'),
+        data.get('tipo'),
+        data.get('valor'),
+        data.get('data_aquisicao'),
+    )
+
+    run = run_sql(command, params=params)
+
+    # se o run nao devolver uma resposta do banaco, retorna 500 ( Internal Server Error )
+    if run is None:
+        return jsonify({'erro': 'Nao foi possivel cadastrar o imovel.'}), 500
+
+    # se tudo der certo, retornmaos 201 ( Created ) e a mensagem de cadastro
+    return jsonify({'mensagem': 'Imovel cadastrado com sucesso.'}), 201
 
 if __name__== '__main__':
     app.run(debug=True)
