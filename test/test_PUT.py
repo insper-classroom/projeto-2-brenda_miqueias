@@ -77,3 +77,12 @@ def test_update_imovel_id_inexistente():
     assert response.status_code == 404
     assert response.get_json() == {'erro': 'Imovel nao encontrado.'}
     mocked_run_sql.assert_called_once_with('SELECT id FROM imoveis WHERE id=%s', params=(999,), fetch=True)
+
+def test_update_imovel_sem_json():
+	'''Testa 400 quando o corpo nao possui JSON valido.'''
+	with patch('servidor.run_sql') as mocked_run_sql:
+		client = app.test_client()
+		response = client.put('/imoveis/update/1', data='texto')
+
+	assert response.status_code == 400
+	assert response.get_json() == {'erro': 'Envie um JSON valido no corpo da requisicao.'}
