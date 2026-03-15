@@ -12,7 +12,7 @@ db_config = {
         'port': int(os.getenv('DB_PORT', '3306')),
     }
 
-def run_sql(command, params=None, fetch=False):
+def run_sql(command, params=None, fetch=False, return_rowcount=False):
     '''Executa comandos SQL em um banco de dados MySQL.
 
     Args:
@@ -21,11 +21,15 @@ def run_sql(command, params=None, fetch=False):
             Defaults to None.
         fetch (bool, optional): Indica se o comando deve retornar resultados.
             Defaults to False.
+        return_rowcount (bool, optional): Quando ``True`` e ``fetch`` for
+            ``False``, retorna a quantidade de linhas afetadas.
+            Defaults to False.
 
     Returns:
-        list[dict] | bool | None: Retorna uma lista de dicionarios quando
-        ``fetch`` for ``True``, ``True`` em caso de sucesso para comandos sem
-        retorno, ou ``None`` em caso de erro.
+        list[dict] | bool | int | None: Retorna uma lista de dicionarios
+        quando ``fetch`` for ``True``, ``True`` em caso de sucesso para
+        comandos sem retorno, a quantidade de linhas afetadas quando
+        ``return_rowcount`` for ``True``, ou ``None`` em caso de erro.
     '''
     connection = None
     cursor = None
@@ -41,6 +45,8 @@ def run_sql(command, params=None, fetch=False):
             return result
 
         connection.commit()
+        if return_rowcount:
+            return cursor.rowcount
         return True
 
     except mysql.connector.Error as e:
