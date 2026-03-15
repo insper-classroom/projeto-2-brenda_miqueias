@@ -27,3 +27,16 @@ def test_delete_imovel_nao_encontrado():
         params=(999,),
         return_rowcount=True
     )
+
+def test_delete_imovel_erro_banco():
+    with patch('servidor.run_sql', return_value=None) as mocked_run_sql:
+        client = app.test_client()
+        response = client.delete('/imoveis/delete/1')
+
+    assert response.status_code == 500
+    assert response.get_json() == {'erro': 'Nao foi possivel excluir o imovel.'}
+    mocked_run_sql.assert_called_once_with(
+        'DELETE FROM imoveis WHERE id = %s',
+        params=(1,),
+        return_rowcount=True
+    )
