@@ -124,5 +124,23 @@ def imoveis_delete(id):
         return jsonify({'mensagem': 'Imovel excluido com sucesso.'}), 200
     return jsonify({'erro': 'Não foi possível excluir o imóvel.'}), 500
 
+@app.route('/imoveis/tipo/<string:imovel_type>', methods=['GET'])
+def get_all_type_imovel(imovel_type):
+    tipo = imovel_type.strip()
+
+    if not tipo:
+        return jsonify({'erro': 'Tipo de imovel invalido.'}), 400
+
+    command = 'SELECT * FROM imoveis WHERE LOWER(tipo)=LOWER(%s)'
+    resultado = run_sql(command=command, params=(tipo,), fetch=True)
+
+    if resultado is None:
+        return jsonify({'erro': 'Nao foi possivel consultar os imoveis por tipo.'}), 500
+
+    if not resultado:
+        return jsonify({'erro': f'Nenhum imovel encontrado para o tipo: {tipo}'}), 404
+
+    return jsonify(resultado), 200
+
 if __name__== '__main__':
     app.run(debug=True)
