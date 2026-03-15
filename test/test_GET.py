@@ -55,3 +55,17 @@ def test_get_all_type_imovel_sucesso():
 	)
 	assert response.status_code == 200
 	assert response.get_json() == expected_data
+
+def test_get_all_type_imovel_nao_encontrado():
+	'''Testa 404 quando nao ha imoveis para o tipo informado.'''
+	with patch('servidor.run_sql', return_value=[]) as mocked_run_sql:
+		client = app.test_client()
+		response = client.get('/imoveis/tipo/cobertura')
+
+	mocked_run_sql.assert_called_once_with(
+		command='SELECT * FROM imoveis WHERE LOWER(tipo)=LOWER(%s)',
+		params=('cobertura',),
+		fetch=True,
+	)
+	assert response.status_code == 404
+	assert response.get_json() == {'erro': 'Nenhum imovel encontrado para o tipo: cobertura'}
