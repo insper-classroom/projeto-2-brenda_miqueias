@@ -13,7 +13,7 @@ def get_imovel_id(id):
     command = 'SELECT * FROM imoveis WHERE id=%s'
     return run_sql(command, params=(id,), fetch=True)
 
-@app.route('/submit', methods=['POST'])
+@app.route('/imoveis/submit', methods=['POST'])
 def submit_imovel():
     data = request.get_json(silent=True) #captura do corpo da requisicao
 
@@ -59,6 +59,58 @@ def submit_imovel():
 
     # se tudo der certo, retornmaos 201 ( Created ) e a mensagem de cadastro
     return jsonify({'mensagem': 'Imovel cadastrado com sucesso.'}), 201
+
+@app.route('/imoveis/update/<int:id>', methods=['PUT'])
+def update_imovel(id):
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({'erro': 'Envie um JSON valido no corpo da requisicao.'}), 400
+
+    campos_obrigatorios = ['logradouro', 'cidade']
+    campos_faltantes = [campo for campo in campos_obrigatorios if not data.get(campo)]
+    if campos_faltantes:
+        return jsonify({'erro': f"Campos obrigatorios ausentes: {', '.join(campos_faltantes)}"}), 400
+
+    existe = run_sql('SELECT id FROM imoveis WHERE id=%s', params=(id,), fetch=True)
+    if existe is None:
+        return jsonify({'erro': 'Nao foi possivel verificar o imovel.'}), 500
+    if not existe:
+        return jsonify({'erro': 'Imovel nao encontrado.'}), 404
+
+    command = '''
+        UPDATE imoveis
+        SET
+            logradouro=%s,
+            tipo_logradouro=%s,
+            bairro=%s,
+            cidade=%s,
+            cep=%s,
+            tipo=%s,
+            valor=%s,
+            data_aquisicao=%s
+        WHERE id=%s
+    '''
+    params = (
+        data['logradouro'],
+        data.get('tipo_logradouro'),
+        data.get('bairro'),
+        data['cidade'],
+        data.get('cep'),
+        data.get('tipo'),
+        data.get('valor'),
+        data.get('data_aquisicao'),
+        id,
+    )
+
+    atualizado = run_sql(command, params=params)
+    if atualizado is None:
+        return jsonify({'erro': 'Nao foi possivel atualizar o imovel.'}), 500
+
+    imovel_atualizado = run_sql('SELECT * FROM imoveis WHERE id=%s', params=(id,), fetch=True)
+    if imovel_atualizado is None:
+        return jsonify({'erro': 'Imovel atualizado, mas nao foi possivel recuperar os dados.'}), 500
+
+    return jsonify({'mensagem': 'Imovel atualizado com sucesso.', 'imovel': imovel_atualizado[0]}), 200
 
 if __name__== '__main__':
     app.run(debug=True)
