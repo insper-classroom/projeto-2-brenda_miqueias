@@ -39,3 +39,19 @@ def test_get_imovel_id():
 	mocked_run_sql.assert_called_once_with('SELECT * FROM imoveis WHERE id=%s', params=(1,), fetch=True)
 	assert response.status_code == 200
 	assert response.get_json() == expected_data
+
+def test_get_all_type_imovel_sucesso():
+	'''Testa a rota GET /imoveis/tipo/<imovel_type> em caso de sucesso.'''
+	expected_data = [{"id": 1, "tipo": "apartamento"}]
+
+	with patch('servidor.run_sql', return_value=expected_data) as mocked_run_sql:
+		client = app.test_client()
+		response = client.get('/imoveis/tipo/apartamento')
+
+	mocked_run_sql.assert_called_once_with(
+		command='SELECT * FROM imoveis WHERE LOWER(tipo)=LOWER(%s)',
+		params=('apartamento',),
+		fetch=True,
+	)
+	assert response.status_code == 200
+	assert response.get_json() == expected_data
