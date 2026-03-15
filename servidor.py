@@ -13,7 +13,7 @@ def get_imovel_id(id):
     command = 'SELECT * FROM imoveis WHERE id=%s'
     return run_sql(command, params=(id,), fetch=True)
 
-@app.route('/submit', methods=['POST'])
+@app.route('/imoveis/submit', methods=['POST'])
 def submit_imovel():
     data = request.get_json(silent=True) #captura do corpo da requisicao
 

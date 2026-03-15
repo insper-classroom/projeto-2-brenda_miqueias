@@ -1,0 +1,69 @@
+from unittest.mock import call, patch
+from servidor import app
+
+
+def test_update_imovel_sucesso():
+	'''Testa a rota PUT /imoveis/update/<id> em caso de sucesso.'''
+	payload = {
+		'logradouro': 'Rua Nova',
+		'tipo_logradouro': 'Rua',
+		'bairro': 'Centro',
+		'cidade': 'Sao Paulo',
+		'cep': '01000-000',
+		'tipo': 'apartamento',
+		'valor': 500000.0,
+		'data_aquisicao': '2024-01-01',
+	}
+
+	expected_update_command = '''
+        UPDATE imoveis
+        SET
+            logradouro=%s,
+            tipo_logradouro=%s,
+            bairro=%s,
+            cidade=%s,
+            cep=%s,
+            tipo=%s,
+            valor=%s,
+            data_aquisicao=%s
+        WHERE id=%s
+    '''
+
+	expected_update_params = (
+		'Rua Nova',
+		'Rua',
+		'Centro',
+		'Sao Paulo',
+		'01000-000',
+		'apartamento',
+		500000.0,
+		'2024-01-01',
+		1,
+	)
+
+	updated_row = [{
+		'id': 1,
+		'logradouro': 'Rua Nova',
+		'tipo_logradouro': 'Rua',
+		'bairro': 'Centro',
+		'cidade': 'Sao Paulo',
+		'cep': '01000-000',
+		'tipo': 'apartamento',
+		'valor': 500000.0,
+		'data_aquisicao': '2024-01-01',
+	}]
+
+	with patch('servidor.run_sql', side_effect=[[{'id': 1}], True, updated_row]) as mocked_run_sql:
+		client = app.test_client()
+		response = client.put('/imoveis/update/1', json=payload)
+
+	assert response.status_code == 200
+	assert response.get_json() == {
+		'mensagem': 'Imovel atualizado com sucesso.',
+		'imovel': updated_row[0],
+	}
+	mocked_run_sql.assert_has_calls([
+		call('SELECT id FROM imoveis WHERE id=%s', params=(1,), fetch=True),
+		call(expected_update_command, params=expected_update_params),
+		call('SELECT * FROM imoveis WHERE id=%s', params=(1,), fetch=True),
+	])
