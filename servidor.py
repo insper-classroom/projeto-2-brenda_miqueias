@@ -112,5 +112,17 @@ def update_imovel(id):
 
     return jsonify({'mensagem': 'Imovel atualizado com sucesso.', 'imovel': imovel_atualizado[0]}), 200
 
+@app.route('/imoveis/delete/<int:id>', methods=['DELETE'])
+def imoveis_delete(id):
+    command = 'DELETE FROM imoveis WHERE id = %s'
+    result = run_sql(command, params=(id,), return_rowcount=True)
+    if result is None:
+        return jsonify({'erro': 'Nao foi possivel excluir o imovel.'}), 500
+    if result == 0:
+        return jsonify({'erro': 'Imovel nao encontrado.'}), 404
+    if result > 0:
+        return jsonify({'mensagem': 'Imovel excluido com sucesso.'}), 200
+    return jsonify({'erro': 'Não foi possível excluir o imóvel.'}), 500
+
 if __name__== '__main__':
     app.run(debug=True)
