@@ -85,3 +85,15 @@ def test_get_all_city_imovel_sucesso():
 	)
 	assert response.status_code == 200
 	assert response.get_json() == expected_data
+
+def test_get_all_city_imovel_sem_query_param():
+	'''Testa 400 quando a cidade nao e informada na query string.'''
+	with patch('servidor.run_sql') as mocked_run_sql:
+		client = app.test_client()
+		response = client.get('/imoveis/cidade')
+
+	mocked_run_sql.assert_not_called()
+	assert response.status_code == 400
+	assert response.get_json() == {
+		'erro': 'Informe a cidade na query string, ex: /imoveis/cidade?cidade=Recife'
+	}
