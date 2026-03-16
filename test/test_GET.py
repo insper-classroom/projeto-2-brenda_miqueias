@@ -69,3 +69,19 @@ def test_get_all_type_imovel_nao_encontrado():
 	)
 	assert response.status_code == 404
 	assert response.get_json() == {'erro': 'Nenhum imovel encontrado para o tipo: cobertura'}
+
+def test_get_all_city_imovel_sucesso():
+	'''Testa a rota GET /imoveis/cidade?cidade=<cidade> em caso de sucesso.'''
+	expected_data = [{"id": 1, "cidade": "Recife"}]
+
+	with patch('servidor.run_sql', return_value=expected_data) as mocked_run_sql:
+		client = app.test_client()
+		response = client.get('/imoveis/cidade?cidade=Recife')
+
+	mocked_run_sql.assert_called_once_with(
+		command='SELECT * FROM imoveis WHERE LOWER(cidade)=LOWER(%s)',
+		params=('Recife',),
+		fetch=True,
+	)
+	assert response.status_code == 200
+	assert response.get_json() == expected_data
