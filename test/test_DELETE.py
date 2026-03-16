@@ -5,7 +5,7 @@ from servidor import app
 def test_delete_imovel_sucesso():
     with patch('servidor.run_sql', return_value=1) as mocked_run_sql:
         client = app.test_client()
-        response = client.delete('/imoveis/delete/1')
+        response = client.delete('/imoveis/1')
 
     assert response.status_code == 200
     assert response.get_json() == {'mensagem': 'Imovel excluido com sucesso.'}
@@ -18,7 +18,7 @@ def test_delete_imovel_sucesso():
 def test_delete_imovel_nao_encontrado():
     with patch('servidor.run_sql', return_value=0) as mocked_run_sql:
         client = app.test_client()
-        response = client.delete('/imoveis/delete/999')
+        response = client.delete('/imoveis/999')
 
     assert response.status_code == 404
     assert response.get_json() == {'erro': 'Imovel nao encontrado.'}
@@ -31,7 +31,7 @@ def test_delete_imovel_nao_encontrado():
 def test_delete_imovel_erro_banco():
     with patch('servidor.run_sql', return_value=None) as mocked_run_sql:
         client = app.test_client()
-        response = client.delete('/imoveis/delete/1')
+        response = client.delete('/imoveis/1')
 
     assert response.status_code == 500
     assert response.get_json() == {'erro': 'Nao foi possivel excluir o imovel.'}
