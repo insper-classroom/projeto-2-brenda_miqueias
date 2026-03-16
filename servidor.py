@@ -142,5 +142,23 @@ def get_all_type_imovel(imovel_type):
 
     return jsonify(resultado), 200
 
+@app.route('/imoveis/cidade', methods=['GET'])
+def get_all_city_imovel():
+    city = request.args.get('cidade', '').strip()
+
+    if not city:
+        return jsonify({'erro': 'Informe a cidade na query string, ex: /imoveis/cidade?cidade=Recife'}), 400
+
+    command = 'SELECT * FROM imoveis WHERE LOWER(cidade)=LOWER(%s)'
+    resultado = run_sql(command=command, params=(city,), fetch=True)
+
+    if resultado is None:
+        return jsonify({'erro': 'Nao foi possivel consultar os imoveis por cidade.'}), 500
+
+    if not resultado:
+        return jsonify({'erro': f'Nenhum imovel encontrado para a cidade: {city}'}), 404
+
+    return jsonify(resultado), 200
+
 if __name__== '__main__':
     app.run(debug=True)
