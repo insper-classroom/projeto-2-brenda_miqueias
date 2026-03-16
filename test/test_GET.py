@@ -97,3 +97,17 @@ def test_get_all_city_imovel_sem_query_param():
 	assert response.get_json() == {
 		'erro': 'Informe a cidade na query string, ex: /imoveis/cidade?cidade=Recife'
 	}
+
+def test_get_all_city_imovel_nao_encontrado():
+	'''Testa 404 quando nao ha imoveis para a cidade informada.'''
+	with patch('servidor.run_sql', return_value=[]) as mocked_run_sql:
+		client = app.test_client()
+		response = client.get('/imoveis/cidade?cidade=Manaus')
+
+	mocked_run_sql.assert_called_once_with(
+		command='SELECT * FROM imoveis WHERE LOWER(cidade)=LOWER(%s)',
+		params=('Manaus',),
+		fetch=True,
+	)
+	assert response.status_code == 404
+	assert response.get_json() == {'erro': 'Nenhum imovel encontrado para a cidade: Manaus'}
