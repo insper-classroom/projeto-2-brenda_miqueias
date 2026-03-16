@@ -6,12 +6,20 @@ app = Flask(__name__)
 @app.route('/imoveis', methods=['GET'])
 def get_all_imoveis():
     command = 'SELECT * FROM imoveis'
-    return run_sql(command, fetch=True)
+    resultado = run_sql(command, fetch=True)
+    if resultado is None:
+        return jsonify({'erro': 'Nao foi possivel consultar os imoveis.'}), 500
+    return jsonify(resultado), 200
 
 @app.route('/imoveis/<int:id>', methods=['GET'])
 def get_imovel_id(id):
     command = 'SELECT * FROM imoveis WHERE id=%s'
-    return run_sql(command, params=(id,), fetch=True)
+    resultado = run_sql(command, params=(id,), fetch=True)
+    if resultado is None:
+        return jsonify({'erro': 'Nao foi possivel consultar o imovel.'}), 500
+    if not resultado:
+        return jsonify({'erro': 'Imovel nao encontrado.'}), 404
+    return jsonify(resultado[0]), 200
 
 @app.route('/imoveis', methods=['POST'])
 def submit_imovel():
