@@ -38,7 +38,37 @@ def test_get_imovel_id():
 
 	mocked_run_sql.assert_called_once_with('SELECT * FROM imoveis WHERE id=%s', params=(1,), fetch=True)
 	assert response.status_code == 200
-	assert response.get_json() == expected_data
+	assert response.get_json() == expected_data[0]
+
+def test_get_imovel_id_nao_encontrado():
+	'''Testa 404 quando o imovel nao existe.''' 
+	with patch('servidor.run_sql', return_value=[]) as mocked_run_sql:
+		client = app.test_client()
+		response = client.get('/imoveis/999')
+
+	mocked_run_sql.assert_called_once_with('SELECT * FROM imoveis WHERE id=%s', params=(999,), fetch=True)
+	assert response.status_code == 404
+	assert response.get_json() == {'erro': 'Imovel nao encontrado.'}
+
+def test_get_imovel_id_erro_banco():
+	'''Testa 500 quando ocorre erro na consulta por id.'''
+	with patch('servidor.run_sql', return_value=None) as mocked_run_sql:
+		client = app.test_client()
+		response = client.get('/imoveis/1')
+
+	mocked_run_sql.assert_called_once_with('SELECT * FROM imoveis WHERE id=%s', params=(1,), fetch=True)
+	assert response.status_code == 500
+	assert response.get_json() == {'erro': 'Nao foi possivel consultar o imovel.'}
+
+def test_get_all_imoveis_erro_banco():
+	'''Testa 500 quando ocorre erro na consulta da colecao.'''
+	with patch('servidor.run_sql', return_value=None) as mocked_run_sql:
+		client = app.test_client()
+		response = client.get('/imoveis')
+
+	mocked_run_sql.assert_called_once_with('SELECT * FROM imoveis', fetch=True)
+	assert response.status_code == 500
+	assert response.get_json() == {'erro': 'Nao foi possivel consultar os imoveis.'}
 
 def test_get_all_type_imovel_sucesso():
 	'''Testa a rota GET /imoveis/tipo/<imovel_type> em caso de sucesso.'''

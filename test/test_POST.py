@@ -2,7 +2,7 @@ from unittest.mock import patch
 from servidor import app
 
 def test_submit_imovel():
-	'''Testa a rota POST /imoveis/submit.
+	'''Testa a rota POST /imoveis.
 
         Valida que:
 
@@ -51,18 +51,18 @@ def test_submit_imovel():
 
 	with patch('servidor.run_sql', return_value=True) as mocked_run_sql:
 		client = app.test_client()
-		response = client.post('/imoveis/submit', json=payload)
+		response = client.post('/imoveis', json=payload)
 
 	mocked_run_sql.assert_called_once_with(expected_command, params=expected_params)
 	assert response.status_code == 201
 	assert response.get_json() == {'mensagem': 'Imovel cadastrado com sucesso.'}
 
 def test_submit_imovel_sem_campos_obrigatorios():
-	'''Testa a validacao minima da rota POST /imoveis/submit.'''
+	'''Testa a validacao minima da rota POST /imoveis.'''
 
 	with patch('servidor.run_sql') as mocked_run_sql:
 		client = app.test_client()
-		response = client.post('/imoveis/submit', json={'bairro': 'Centro'})
+		response = client.post('/imoveis', json={'bairro': 'Centro'})
 
 	mocked_run_sql.assert_not_called()
 	assert response.status_code == 400

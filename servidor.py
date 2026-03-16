@@ -13,7 +13,7 @@ def get_imovel_id(id):
     command = 'SELECT * FROM imoveis WHERE id=%s'
     return run_sql(command, params=(id,), fetch=True)
 
-@app.route('/imoveis/submit', methods=['POST'])
+@app.route('/imoveis', methods=['POST'])
 def submit_imovel():
     data = request.get_json(silent=True) #captura do corpo da requisicao
 
@@ -60,7 +60,7 @@ def submit_imovel():
     # se tudo der certo, retornmaos 201 ( Created ) e a mensagem de cadastro
     return jsonify({'mensagem': 'Imovel cadastrado com sucesso.'}), 201
 
-@app.route('/imoveis/update/<int:id>', methods=['PUT'])
+@app.route('/imoveis/<int:id>', methods=['PUT'])
 def update_imovel(id):
     data = request.get_json(silent=True)
     if not data:
@@ -112,7 +112,7 @@ def update_imovel(id):
 
     return jsonify({'mensagem': 'Imovel atualizado com sucesso.', 'imovel': imovel_atualizado[0]}), 200
 
-@app.route('/imoveis/delete/<int:id>', methods=['DELETE'])
+@app.route('/imoveis/<int:id>', methods=['DELETE'])
 def imoveis_delete(id):
     command = 'DELETE FROM imoveis WHERE id = %s'
     result = run_sql(command, params=(id,), return_rowcount=True)

@@ -3,7 +3,7 @@ from servidor import app
 
 
 def test_update_imovel_sucesso():
-	'''Testa a rota PUT /imoveis/update/<id> em caso de sucesso.'''
+	'''Testa a rota PUT /imoveis/<id> em caso de sucesso.'''
 	payload = {
 		'logradouro': 'Rua Nova',
 		'tipo_logradouro': 'Rua',
@@ -55,7 +55,7 @@ def test_update_imovel_sucesso():
 
 	with patch('servidor.run_sql', side_effect=[[{'id': 1}], True, updated_row]) as mocked_run_sql:
 		client = app.test_client()
-		response = client.put('/imoveis/update/1', json=payload)
+		response = client.put('/imoveis/1', json=payload)
 
 	assert response.status_code == 200
 	assert response.get_json() == {
@@ -76,7 +76,7 @@ def test_update_imovel_id_inexistente():
 	'''Testa 404 quando o id nao existe.'''
 	with patch('servidor.run_sql', return_value=[]) as mocked_run_sql:
 		client = app.test_client()
-		response = client.put('/imoveis/update/999', json={'logradouro': 'Rua A', 'cidade': 'Sao Paulo'})
+		response = client.put('/imoveis/999', json={'logradouro': 'Rua A', 'cidade': 'Sao Paulo'})
 
 	assert response.status_code == 404
 	assert response.get_json() == {'erro': 'Imovel nao encontrado.'}
@@ -87,7 +87,7 @@ def test_update_imovel_sem_json():
 	'''Testa 400 quando o corpo nao possui JSON valido.'''
 	with patch('servidor.run_sql') as mocked_run_sql:
 		client = app.test_client()
-		response = client.put('/imoveis/update/1', data='texto')
+		response = client.put('/imoveis/1', data='texto')
 
 	assert response.status_code == 400
 	assert response.get_json() == {'erro': 'Envie um JSON valido no corpo da requisicao.'}
