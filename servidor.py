@@ -343,4 +343,4 @@ def get_all_city_imovel():
     }), 200
 
 if __name__== '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
