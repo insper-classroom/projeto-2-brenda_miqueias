@@ -58,10 +58,13 @@ def test_update_imovel_sucesso():
 		response = client.put('/imoveis/1', json=payload)
 
 	assert response.status_code == 200
-	assert response.get_json() == {
+	body = response.get_json()
+	assert body['data'] == {
 		'mensagem': 'Imovel atualizado com sucesso.',
 		'imovel': updated_row[0],
 	}
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
 	mocked_run_sql.assert_has_calls([
 		call('SELECT id FROM imoveis WHERE id=%s', params=(1,), fetch=True),
 		call('SELECT * FROM imoveis WHERE id=%s', params=(1,), fetch=True),
@@ -79,7 +82,10 @@ def test_update_imovel_id_inexistente():
 		response = client.put('/imoveis/999', json={'logradouro': 'Rua A', 'cidade': 'Sao Paulo'})
 
 	assert response.status_code == 404
-	assert response.get_json() == {'erro': 'Imovel nao encontrado.'}
+	body = response.get_json()
+	assert body['erro'] == 'Imovel nao encontrado.'
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
 	mocked_run_sql.assert_called_once_with('SELECT id FROM imoveis WHERE id=%s', params=(999,), fetch=True)
 
 
@@ -90,5 +96,8 @@ def test_update_imovel_sem_json():
 		response = client.put('/imoveis/1', data='texto')
 
 	assert response.status_code == 400
-	assert response.get_json() == {'erro': 'Envie um JSON valido no corpo da requisicao.'}
+	body = response.get_json()
+	assert body['erro'] == 'Envie um JSON valido no corpo da requisicao.'
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
 	mocked_run_sql.assert_not_called()
