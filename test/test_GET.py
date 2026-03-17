@@ -98,7 +98,10 @@ def test_get_all_type_imovel_sucesso():
 		fetch=True,
 	)
 	assert response.status_code == 200
-	assert response.get_json() == expected_data
+	body = response.get_json()
+	assert body['data'] == expected_data
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
 
 def test_get_all_type_imovel_nao_encontrado():
 	'''Testa 404 quando nao ha imoveis para o tipo informado.'''
@@ -112,8 +115,11 @@ def test_get_all_type_imovel_nao_encontrado():
 		fetch=True,
 	)
 	assert response.status_code == 404
-	assert response.get_json() == {'erro': 'Nenhum imovel encontrado para o tipo: cobertura'}
-
+	body = response.get_json()
+	assert body['erro'] == 'Nenhum imovel encontrado para o tipo: cobertura'
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
+	
 def test_get_all_city_imovel_sucesso():
 	'''Testa a rota GET /imoveis/cidade?cidade=<cidade> em caso de sucesso.'''
 	expected_data = [{"id": 1, "cidade": "Recife"}]
