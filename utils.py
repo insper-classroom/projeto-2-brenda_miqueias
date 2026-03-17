@@ -10,6 +10,7 @@ db_config = {
         'password': os.getenv('DB_PASSWORD'),
         'database': os.getenv('DB_NAME'),
         'port': int(os.getenv('DB_PORT', '3306')),
+        'ssl_ca': os.getenv('SSL_CA_PATH')
     }
 
 def run_sql(command, params=None, fetch=False, return_rowcount=False):
