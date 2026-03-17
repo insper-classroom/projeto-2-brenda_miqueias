@@ -8,7 +8,10 @@ def test_delete_imovel_sucesso():
         response = client.delete('/imoveis/1')
 
     assert response.status_code == 200
-    assert response.get_json() == {'mensagem': 'Imovel excluido com sucesso.'}
+    body = response.get_json()
+    assert body['data'] == {'mensagem': 'Imovel excluido com sucesso.'}
+    assert isinstance(body['links'], list)
+    assert len(body['links']) > 0
     mocked_run_sql.assert_called_once_with(
         'DELETE FROM imoveis WHERE id = %s',
         params=(1,),
@@ -21,7 +24,10 @@ def test_delete_imovel_nao_encontrado():
         response = client.delete('/imoveis/999')
 
     assert response.status_code == 404
-    assert response.get_json() == {'erro': 'Imovel nao encontrado.'}
+    body = response.get_json()
+    assert body['erro'] == 'Imovel nao encontrado.'
+    assert isinstance(body['links'], list)
+    assert len(body['links']) > 0
     mocked_run_sql.assert_called_once_with(
         'DELETE FROM imoveis WHERE id = %s',
         params=(999,),
@@ -34,7 +40,10 @@ def test_delete_imovel_erro_banco():
         response = client.delete('/imoveis/1')
 
     assert response.status_code == 500
-    assert response.get_json() == {'erro': 'Nao foi possivel excluir o imovel.'}
+    body = response.get_json()
+    assert body['erro'] == 'Nao foi possivel excluir o imovel.'
+    assert isinstance(body['links'], list)
+    assert len(body['links']) > 0
     mocked_run_sql.assert_called_once_with(
         'DELETE FROM imoveis WHERE id = %s',
         params=(1,),
