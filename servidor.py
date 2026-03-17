@@ -171,18 +171,41 @@ def get_all_type_imovel(imovel_type):
     tipo = imovel_type.strip()
 
     if not tipo:
-        return jsonify({'erro': 'Tipo de imovel invalido.'}), 400
+        return jsonify({
+            'erro': 'Tipo de imovel invalido.',
+            'links': [
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+            ]
+        }), 400
 
     command = 'SELECT * FROM imoveis WHERE LOWER(tipo)=LOWER(%s)'
     resultado = run_sql(command=command, params=(tipo,), fetch=True)
 
     if resultado is None:
-        return jsonify({'erro': 'Nao foi possivel consultar os imoveis por tipo.'}), 500
+        return jsonify({
+            'erro': 'Nao foi possivel consultar os imoveis por tipo.',
+            'links': [
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'},
+                {'rel': 'self', 'href': url_for('get_all_type_imovel', imovel_type=tipo, _external=True), 'method': 'GET'}
+            ]
+        }), 500
 
     if not resultado:
-        return jsonify({'erro': f'Nenhum imovel encontrado para o tipo: {tipo}'}), 404
+        return jsonify({
+            'erro': f'Nenhum imovel encontrado para o tipo: {tipo}',
+            'links': [
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'},
+                {'rel': 'create', 'href': url_for('submit_imovel', _external=True), 'method': 'POST'}
+            ]
+        }), 404
 
-    return jsonify(resultado), 200
+    return jsonify({
+        'data': resultado,
+        'links': [
+            {'rel': 'self', 'href': url_for('get_all_type_imovel', imovel_type=tipo, _external=True), 'method': 'GET'},
+            {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+        ]
+    }), 200
 
 @app.route('/imoveis/cidade', methods=['GET'])
 def get_all_city_imovel():
