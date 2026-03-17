@@ -212,18 +212,43 @@ def get_all_city_imovel():
     city = request.args.get('cidade', '').strip()
 
     if not city:
-        return jsonify({'erro': 'Informe a cidade na query string, ex: /imoveis/cidade?cidade=Recife'}), 400
+        return jsonify({
+            'erro': 'Informe a cidade na query string, ex: /imoveis/cidade?cidade=Recife',
+            'links': [
+                {'rel': 'self', 'href': f"{url_for('get_all_city_imovel', _external=True)}?cidade={{cidade}}", 'method': 'GET'},
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+            ]
+        }), 400
 
     command = 'SELECT * FROM imoveis WHERE LOWER(cidade)=LOWER(%s)'
     resultado = run_sql(command=command, params=(city,), fetch=True)
 
     if resultado is None:
-        return jsonify({'erro': 'Nao foi possivel consultar os imoveis por cidade.'}), 500
+        return jsonify({
+            'erro': 'Nao foi possivel consultar os imoveis por cidade.',
+            'links': [
+                {'rel': 'self', 'href': f"{url_for('get_all_city_imovel', _external=True)}?cidade={city}", 'method': 'GET'},
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+            ]
+        }), 500
 
     if not resultado:
-        return jsonify({'erro': f'Nenhum imovel encontrado para a cidade: {city}'}), 404
+        return jsonify({
+            'erro': f'Nenhum imovel encontrado para a cidade: {city}',
+            'links': [
+                {'rel': 'self', 'href': f"{url_for('get_all_city_imovel', _external=True)}?cidade={city}", 'method': 'GET'},
+                {'rel': 'create', 'href': url_for('submit_imovel', _external=True), 'method': 'POST'},
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+            ]
+        }), 404
 
-    return jsonify(resultado), 200
+    return jsonify({
+        'data': resultado,
+        'links': [
+            {'rel': 'self', 'href': f"{url_for('get_all_city_imovel', _external=True)}?cidade={city}", 'method': 'GET'},
+            {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+        ]
+    }), 200
 
 if __name__== '__main__':
     app.run(debug=True)
