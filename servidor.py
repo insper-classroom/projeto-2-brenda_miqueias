@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, url_for
 from utils import run_sql
 
 app = Flask(__name__)
@@ -8,8 +8,22 @@ def get_all_imoveis():
     command = 'SELECT * FROM imoveis'
     resultado = run_sql(command, fetch=True)
     if resultado is None:
-        return jsonify({'erro': 'Nao foi possivel consultar os imoveis.'}), 500
-    return jsonify(resultado), 200
+        return jsonify({
+            'erro': 'Nao foi possivel consultar os imoveis.',
+            'links': [
+                {'rel': 'self', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'},
+                {'rel': 'create', 'href': url_for('submit_imovel', _external=True), 'method': 'POST'}
+            ]
+        }), 500
+    return jsonify({
+        'data': resultado,
+        'links': [
+            {'rel': 'self', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'},
+            {'rel': 'create', 'href': url_for('submit_imovel', _external=True), 'method': 'POST'},
+            {'rel': 'by_type', 'href': url_for('get_all_type_imovel', imovel_type='{tipo}', _external=True), 'method': 'GET'},
+            {'rel': 'by_city', 'href': f"{url_for('get_all_city_imovel', _external=True)}?cidade={{cidade}}", 'method': 'GET'}
+        ]
+    }), 200
 
 @app.route('/imoveis/<int:id>', methods=['GET'])
 def get_imovel_id(id):
