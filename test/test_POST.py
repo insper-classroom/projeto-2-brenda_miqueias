@@ -55,7 +55,10 @@ def test_submit_imovel():
 
 	mocked_run_sql.assert_called_once_with(expected_command, params=expected_params)
 	assert response.status_code == 201
-	assert response.get_json() == {'mensagem': 'Imovel cadastrado com sucesso.'}
+	body = response.get_json()
+	assert body['data'] == {'mensagem': 'Imovel cadastrado com sucesso.'}
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
 
 def test_submit_imovel_sem_campos_obrigatorios():
 	'''Testa a validacao minima da rota POST /imoveis.'''
@@ -66,4 +69,7 @@ def test_submit_imovel_sem_campos_obrigatorios():
 
 	mocked_run_sql.assert_not_called()
 	assert response.status_code == 400
-	assert response.get_json() == {'erro': 'Campos obrigatorios ausentes: logradouro, cidade'}
+	body = response.get_json()
+	assert body['erro'] == 'Campos obrigatorios ausentes: logradouro, cidade'
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
