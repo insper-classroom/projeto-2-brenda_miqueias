@@ -134,7 +134,10 @@ def test_get_all_city_imovel_sucesso():
 		fetch=True,
 	)
 	assert response.status_code == 200
-	assert response.get_json() == expected_data
+	body = response.get_json()
+	assert body['data'] == expected_data
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
 
 def test_get_all_city_imovel_sem_query_param():
 	'''Testa 400 quando a cidade nao e informada na query string.'''
@@ -144,9 +147,10 @@ def test_get_all_city_imovel_sem_query_param():
 
 	mocked_run_sql.assert_not_called()
 	assert response.status_code == 400
-	assert response.get_json() == {
-		'erro': 'Informe a cidade na query string, ex: /imoveis/cidade?cidade=Recife'
-	}
+	body = response.get_json()
+	assert body['erro'] == 'Informe a cidade na query string, ex: /imoveis/cidade?cidade=Recife'
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
 
 def test_get_all_city_imovel_nao_encontrado():
 	'''Testa 404 quando nao ha imoveis para a cidade informada.'''
@@ -160,4 +164,7 @@ def test_get_all_city_imovel_nao_encontrado():
 		fetch=True,
 	)
 	assert response.status_code == 404
-	assert response.get_json() == {'erro': 'Nenhum imovel encontrado para a cidade: Manaus'}
+	body = response.get_json()
+	assert body['erro'] == 'Nenhum imovel encontrado para a cidade: Manaus'
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
