@@ -183,12 +183,36 @@ def imoveis_delete(id):
     command = 'DELETE FROM imoveis WHERE id = %s'
     result = run_sql(command, params=(id,), return_rowcount=True)
     if result is None:
-        return jsonify({'erro': 'Nao foi possivel excluir o imovel.'}), 500
+        return jsonify({
+            'erro': 'Nao foi possivel excluir o imovel.',
+            'links': [
+                {'rel': 'resource', 'href': url_for('get_imovel_id', id=id, _external=True), 'method': 'GET'},
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+            ]
+        }), 500
     if result == 0:
-        return jsonify({'erro': 'Imovel nao encontrado.'}), 404
+        return jsonify({
+            'erro': 'Imovel nao encontrado.',
+            'links': [
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'},
+                {'rel': 'create', 'href': url_for('submit_imovel', _external=True), 'method': 'POST'}
+            ]
+        }), 404
     if result > 0:
-        return jsonify({'mensagem': 'Imovel excluido com sucesso.'}), 200
-    return jsonify({'erro': 'Não foi possível excluir o imóvel.'}), 500
+        return jsonify({
+            'data': {'mensagem': 'Imovel excluido com sucesso.'},
+            'links': [
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'},
+                {'rel': 'create', 'href': url_for('submit_imovel', _external=True), 'method': 'POST'}
+            ]
+        }), 200
+    return jsonify({
+        'erro': 'Nao foi possivel excluir o imovel.',
+        'links': [
+            {'rel': 'resource', 'href': url_for('get_imovel_id', id=id, _external=True), 'method': 'GET'},
+            {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+        ]
+    }), 500
 
 @app.route('/imoveis/tipo/<string:imovel_type>', methods=['GET'])
 def get_all_type_imovel(imovel_type):
