@@ -130,18 +130,42 @@ def submit_imovel():
 def update_imovel(id):
     data = request.get_json(silent=True)
     if not data:
-        return jsonify({'erro': 'Envie um JSON valido no corpo da requisicao.'}), 400
+        return jsonify({
+            'erro': 'Envie um JSON valido no corpo da requisicao.',
+            'links': [
+                {'rel': 'self', 'href': url_for('update_imovel', id=id, _external=True), 'method': 'PUT'},
+                {'rel': 'resource', 'href': url_for('get_imovel_id', id=id, _external=True), 'method': 'GET'}
+            ]
+        }), 400
 
     campos_obrigatorios = ['logradouro', 'cidade']
     campos_faltantes = [campo for campo in campos_obrigatorios if not data.get(campo)]
     if campos_faltantes:
-        return jsonify({'erro': f"Campos obrigatorios ausentes: {', '.join(campos_faltantes)}"}), 400
+        return jsonify({
+            'erro': f"Campos obrigatorios ausentes: {', '.join(campos_faltantes)}",
+            'links': [
+                {'rel': 'self', 'href': url_for('update_imovel', id=id, _external=True), 'method': 'PUT'},
+                {'rel': 'resource', 'href': url_for('get_imovel_id', id=id, _external=True), 'method': 'GET'}
+            ]
+        }), 400
 
     existe = run_sql('SELECT id FROM imoveis WHERE id=%s', params=(id,), fetch=True)
     if existe is None:
-        return jsonify({'erro': 'Nao foi possivel verificar o imovel.'}), 500
+        return jsonify({
+            'erro': 'Nao foi possivel verificar o imovel.',
+            'links': [
+                {'rel': 'resource', 'href': url_for('get_imovel_id', id=id, _external=True), 'method': 'GET'},
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+            ]
+        }), 500
     if not existe:
-        return jsonify({'erro': 'Imovel nao encontrado.'}), 404
+        return jsonify({
+            'erro': 'Imovel nao encontrado.',
+            'links': [
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'},
+                {'rel': 'create', 'href': url_for('submit_imovel', _external=True), 'method': 'POST'}
+            ]
+        }), 404
 
     command = '''
         UPDATE imoveis
@@ -170,13 +194,33 @@ def update_imovel(id):
 
     atualizado = run_sql(command, params=params)
     if atualizado is None:
-        return jsonify({'erro': 'Nao foi possivel atualizar o imovel.'}), 500
+        return jsonify({
+            'erro': 'Nao foi possivel atualizar o imovel.',
+            'links': [
+                {'rel': 'self', 'href': url_for('update_imovel', id=id, _external=True), 'method': 'PUT'},
+                {'rel': 'resource', 'href': url_for('get_imovel_id', id=id, _external=True), 'method': 'GET'}
+            ]
+        }), 500
 
     imovel_atualizado = run_sql('SELECT * FROM imoveis WHERE id=%s', params=(id,), fetch=True)
     if imovel_atualizado is None:
-        return jsonify({'erro': 'Imovel atualizado, mas nao foi possivel recuperar os dados.'}), 500
+        return jsonify({
+            'erro': 'Imovel atualizado, mas nao foi possivel recuperar os dados.',
+            'links': [
+                {'rel': 'resource', 'href': url_for('get_imovel_id', id=id, _external=True), 'method': 'GET'},
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+            ]
+        }), 500
 
-    return jsonify({'mensagem': 'Imovel atualizado com sucesso.', 'imovel': imovel_atualizado[0]}), 200
+    return jsonify({
+        'data': {'mensagem': 'Imovel atualizado com sucesso.', 'imovel': imovel_atualizado[0]},
+        'links': [
+            {'rel': 'self', 'href': url_for('get_imovel_id', id=id, _external=True), 'method': 'GET'},
+            {'rel': 'update', 'href': url_for('update_imovel', id=id, _external=True), 'method': 'PUT'},
+            {'rel': 'delete', 'href': url_for('imoveis_delete', id=id, _external=True), 'method': 'DELETE'},
+            {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+        ]
+    }), 200
 
 @app.route('/imoveis/<int:id>', methods=['DELETE'])
 def imoveis_delete(id):
