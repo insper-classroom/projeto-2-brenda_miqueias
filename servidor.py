@@ -30,10 +30,30 @@ def get_imovel_id(id):
     command = 'SELECT * FROM imoveis WHERE id=%s'
     resultado = run_sql(command, params=(id,), fetch=True)
     if resultado is None:
-        return jsonify({'erro': 'Nao foi possivel consultar o imovel.'}), 500
+        return jsonify({
+            'erro': 'Nao foi possivel consultar o imovel.',
+            'links': [
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'},
+                {'rel': 'create', 'href': url_for('submit_imovel', _external=True), 'method': 'POST'}
+            ]
+        }), 500
     if not resultado:
-        return jsonify({'erro': 'Imovel nao encontrado.'}), 404
-    return jsonify(resultado[0]), 200
+        return jsonify({
+            'erro': 'Imovel nao encontrado.',
+            'links': [
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'},
+                {'rel': 'create', 'href': url_for('submit_imovel', _external=True), 'method': 'POST'}
+            ]
+        }), 404
+    return jsonify({
+        'data': resultado[0],
+        'links': [
+            {'rel': 'self', 'href': url_for('get_imovel_id', id=id, _external=True), 'method': 'GET'},
+            {'rel': 'update', 'href': url_for('update_imovel', id=id, _external=True), 'method': 'PUT'},
+            {'rel': 'delete', 'href': url_for('imoveis_delete', id=id, _external=True), 'method': 'DELETE'},
+            {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+        ]
+    }), 200
 
 @app.route('/imoveis', methods=['POST'])
 def submit_imovel():
