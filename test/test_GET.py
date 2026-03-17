@@ -53,7 +53,10 @@ def test_get_imovel_id():
 
 	mocked_run_sql.assert_called_once_with('SELECT * FROM imoveis WHERE id=%s', params=(1,), fetch=True)
 	assert response.status_code == 200
-	assert response.get_json() == expected_data[0]
+	body = response.get_json()
+	assert body['data'] == expected_data[0]
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
 
 def test_get_imovel_id_nao_encontrado():
 	'''Testa 404 quando o imovel nao existe.''' 
@@ -63,7 +66,10 @@ def test_get_imovel_id_nao_encontrado():
 
 	mocked_run_sql.assert_called_once_with('SELECT * FROM imoveis WHERE id=%s', params=(999,), fetch=True)
 	assert response.status_code == 404
-	assert response.get_json() == {'erro': 'Imovel nao encontrado.'}
+	body = response.get_json()
+	assert body['erro'] == 'Imovel nao encontrado.'
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
 
 def test_get_imovel_id_erro_banco():
 	'''Testa 500 quando ocorre erro na consulta por id.'''
@@ -73,7 +79,10 @@ def test_get_imovel_id_erro_banco():
 
 	mocked_run_sql.assert_called_once_with('SELECT * FROM imoveis WHERE id=%s', params=(1,), fetch=True)
 	assert response.status_code == 500
-	assert response.get_json() == {'erro': 'Nao foi possivel consultar o imovel.'}
+	body = response.get_json()
+	assert body['erro'] == 'Nao foi possivel consultar o imovel.'
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
 
 def test_get_all_type_imovel_sucesso():
 	'''Testa a rota GET /imoveis/tipo/<imovel_type> em caso de sucesso.'''
