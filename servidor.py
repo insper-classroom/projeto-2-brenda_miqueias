@@ -61,14 +61,26 @@ def submit_imovel():
 
     # retorna 400 se o usuario nao inserir nada no corpo da requisicao
     if not data:
-        return jsonify({'erro': 'Envie um JSON valido no corpo da requisicao.'}), 400
+        return jsonify({
+            'erro': 'Envie um JSON valido no corpo da requisicao.',
+            'links': [
+                {'rel': 'self', 'href': url_for('submit_imovel', _external=True), 'method': 'POST'},
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+            ]
+        }), 400
 
     campos_obrigatorios = ['logradouro', 'cidade'] # NOT NULL em imoveis.sql (o banco rejeita registros sem esses valores)
     campos_faltantes = [campo for campo in campos_obrigatorios if not data.get(campo)] #lista campos obrigatrios faltantes
 
     # se a lista campos_faltantes não estiver vazia, ele retorna 400.
     if campos_faltantes:
-        return jsonify({'erro': f"Campos obrigatorios ausentes: {', '.join(campos_faltantes)}"}), 400
+        return jsonify({
+            'erro': f"Campos obrigatorios ausentes: {', '.join(campos_faltantes)}",
+            'links': [
+                {'rel': 'self', 'href': url_for('submit_imovel', _external=True), 'method': 'POST'},
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+            ]
+        }), 400
 
     command = '''
         INSERT INTO imoveis (
@@ -97,10 +109,22 @@ def submit_imovel():
 
     # se o run nao devolver uma resposta do banaco, retorna 500 ( Internal Server Error )
     if run is None:
-        return jsonify({'erro': 'Nao foi possivel cadastrar o imovel.'}), 500
+        return jsonify({
+            'erro': 'Nao foi possivel cadastrar o imovel.',
+            'links': [
+                {'rel': 'self', 'href': url_for('submit_imovel', _external=True), 'method': 'POST'},
+                {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+            ]
+        }), 500
 
     # se tudo der certo, retornmaos 201 ( Created ) e a mensagem de cadastro
-    return jsonify({'mensagem': 'Imovel cadastrado com sucesso.'}), 201
+    return jsonify({
+        'data': {'mensagem': 'Imovel cadastrado com sucesso.'},
+        'links': [
+            {'rel': 'self', 'href': url_for('submit_imovel', _external=True), 'method': 'POST'},
+            {'rel': 'collection', 'href': url_for('get_all_imoveis', _external=True), 'method': 'GET'}
+        ]
+    }), 201
 
 @app.route('/imoveis/<int:id>', methods=['PUT'])
 def update_imovel(id):
