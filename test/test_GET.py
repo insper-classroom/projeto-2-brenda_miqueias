@@ -17,7 +17,10 @@ def test_get_all_imoveis():
 
 	mocked_run_sql.assert_called_once_with('SELECT * FROM imoveis', fetch=True)
 	assert response.status_code == 200
-	assert response.get_json() == expected_data
+	body = response.get_json()
+	assert body['data'] == expected_data
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
 
 def test_get_all_imoveis_erro_banco():
 	'''Testa 500 quando ocorre erro na consulta da colecao.'''
@@ -27,7 +30,10 @@ def test_get_all_imoveis_erro_banco():
 
 	mocked_run_sql.assert_called_once_with('SELECT * FROM imoveis', fetch=True)
 	assert response.status_code == 500
-	assert response.get_json() == {'erro': 'Nao foi possivel consultar os imoveis.'}
+	body = response.get_json()
+	assert body['erro'] == 'Nao foi possivel consultar os imoveis.'
+	assert isinstance(body['links'], list)
+	assert len(body['links']) > 0
 
 def test_get_imovel_id():
 	'''Testa a rota GET /imoveis/<id>.
